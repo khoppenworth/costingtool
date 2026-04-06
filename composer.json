@@ -1,0 +1,22 @@
+{
+  "name": "khoppenworth/tcsa-lamp",
+  "description": "TCSA Web Application baseline LAMP implementation",
+  "type": "project",
+  "require": {
+    "php": ">=8.1",
+    "ext-pdo": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-fileinfo": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "@php -r \"if (!file_exists('.env')) copy('.env.example', '.env');\""
+    ]
+  }
+}

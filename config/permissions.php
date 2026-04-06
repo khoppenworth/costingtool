@@ -1,0 +1,25 @@
+<?php
+return [
+    'permissions' => [
+        'assessments.view',
+        'assessments.create',
+        'assessments.edit',
+        'assessments.submit',
+        'assessments.review',
+        'assessments.approve',
+        'assessments.lock',
+        'assessments.unlock',
+        'admin.users.manage',
+        'admin.settings.manage',
+        'admin.oidc.manage',
+        'admin.upgrades.run',
+        'imports.hr_backend',
+        'imports.cost_backend',
+        'imports.equipment',
+        'imports.infrastructure',
+        'exports.csv',
+        'reports.view',
+        'reports.admin',
+        'attachments.manage',
+    ],
+];
