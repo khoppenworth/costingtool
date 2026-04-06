@@ -78,6 +78,18 @@ php cli/migrate.php
 php cli/seed.php
 ```
 
+Or run both in one command:
+
+```bash
+php cli/install.php
+```
+
+Use `--skip-seed` if you only want schema setup:
+
+```bash
+php cli/install.php --skip-seed
+```
+
 ### 7. Configure Apache document root
 
 Point the Apache vhost to:
