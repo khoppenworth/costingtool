@@ -1,0 +1,5 @@
+/vendor/
+/.env
+/.DS_Store
+/storage/cache/*.flag
+/storage/logs/*.log

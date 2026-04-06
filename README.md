@@ -57,14 +57,28 @@ Set the DB credentials and base URL.
 CREATE DATABASE tcsa CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 5. Run migrations and seeders
+### 5. Run a preflight check
+
+This validates required PHP extensions, writable storage paths, env keys, and DB connectivity:
+
+```bash
+php cli/preflight.php
+```
+
+Use `--skip-db` only if you intentionally want to skip the DB connectivity check:
+
+```bash
+php cli/preflight.php --skip-db
+```
+
+### 6. Run migrations and seeders
 
 ```bash
 php cli/migrate.php
 php cli/seed.php
 ```
 
-### 6. Configure Apache document root
+### 7. Configure Apache document root
 
 Point the Apache vhost to:
 
@@ -91,7 +105,7 @@ Example Apache vhost:
 </VirtualHost>
 ```
 
-### 7. Log in
+### 8. Log in
 
 Seeded admin account:
 
