@@ -59,6 +59,27 @@ return new class implements Seeder {
         if (!$exists('fiscal_years', 'label', 'FY2026')) {
             $db->insert('fiscal_years', ['label' => 'FY2026', 'start_date' => '2025-07-01', 'end_date' => '2026-06-30', 'is_active' => 1]);
         }
+        if (!$exists('fiscal_years', 'label', 'FY2027')) {
+            $db->insert('fiscal_years', ['label' => 'FY2027', 'start_date' => '2026-07-01', 'end_date' => '2027-06-30', 'is_active' => 1]);
+        }
+        if (!$db->one('SELECT id FROM assessment_periods WHERE period_code = :period_code LIMIT 1', ['period_code' => 'FY2026-H1'])) {
+            $db->insert('assessment_periods', [
+                'period_code' => 'FY2026-H1',
+                'label' => 'FY2026 H1',
+                'start_date' => '2025-07-01',
+                'end_date' => '2025-12-31',
+                'is_active' => 1,
+            ]);
+        }
+        if (!$db->one('SELECT id FROM assessment_periods WHERE period_code = :period_code LIMIT 1', ['period_code' => 'FY2026-H2'])) {
+            $db->insert('assessment_periods', [
+                'period_code' => 'FY2026-H2',
+                'label' => 'FY2026 H2',
+                'start_date' => '2026-01-01',
+                'end_date' => '2026-06-30',
+                'is_active' => 1,
+            ]);
+        }
         if (!$exists('calculation_versions', 'version_code', '1.0.0')) {
             $db->insert('calculation_versions', ['version_code' => '1.0.0', 'description' => 'Baseline engine', 'created_at' => $now]);
         }
@@ -85,6 +106,9 @@ return new class implements Seeder {
         ]);
         if (!$db->one('SELECT 1 FROM user_role_assignments WHERE user_id = :user_id AND role_id = :role_id', ['user_id' => $adminId, 'role_id' => $roleMap['Super Admin']])) {
             $db->insert('user_role_assignments', ['user_id' => $adminId, 'role_id' => $roleMap['Super Admin']]);
+        }
+        if (!$db->one('SELECT 1 FROM user_organization_scopes WHERE user_id = :user_id AND organization_id = :organization_id', ['user_id' => $adminId, 'organization_id' => $orgId])) {
+            $db->insert('user_organization_scopes', ['user_id' => $adminId, 'organization_id' => $orgId, 'is_active' => 1]);
         }
 
         if (!$exists('glossary_definitions', 'term_key', 'cash_to_cash_cycle')) {

@@ -239,6 +239,27 @@ This baseline includes:
 php cli/smoke-core.php
 ```
 
+## Administrative foundation (baseline)
+
+The baseline now includes production-minded admin workflows for:
+
+- User CRUD (create + status/role/scope update)
+- Role assignment
+- Admin-initiated password reset
+- Organization and facility/hub/central-unit management
+- Fiscal year and assessment period management
+- System settings persistence (`system_settings`)
+- Scope-aware assessment access checks using organization scope
+
+Primary screens:
+
+- `/admin/users`
+- `/admin/organizations`
+- `/admin/periods`
+- `/admin/settings`
+
+See `docs/admin-guide.md` for manual verification steps and role/scope behavior checks.
+
 Before production use, add:
 
 - secure cookies and HTTPS-only cookies
