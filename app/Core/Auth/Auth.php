@@ -22,6 +22,7 @@ class Auth
             return false;
         }
 
+        session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];
         return true;
     }
@@ -46,6 +47,7 @@ class Auth
 
     public function logout(): void
     {
+        session_regenerate_id(true);
         unset($_SESSION['user_id']);
     }
 }

@@ -6,5 +6,11 @@
     <div class="card"><strong>Upgrades</strong><br><?= e((string) $stats['upgrades']) ?></div>
     <div class="card"><strong>Current version</strong><br><?= e(($stats['version'] ?? 'See upgrade log')) ?></div>
 </div>
-<p><a class="btn" href="/admin/upgrades">Open upgrade utility</a></p>
+<div class="actions">
+    <a class="btn" href="/admin/users">Users & Roles</a>
+    <a class="btn" href="/admin/organizations">Organizations & Facilities</a>
+    <a class="btn" href="/admin/periods">Fiscal Years & Assessment Periods</a>
+    <a class="btn" href="/admin/settings">System Settings</a>
+    <a class="btn" href="/admin/upgrades">Upgrade Utility</a>
+</div>
 <?php $content = ob_get_clean(); require base_path('resources/views/layout.php'); ?>

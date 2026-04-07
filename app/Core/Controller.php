@@ -36,4 +36,18 @@ class Controller
     {
         return new Response(app()->view($template, $data));
     }
+
+    protected function denyUnless(string $permission): ?Response
+    {
+        $userId = $this->auth()->id();
+        if ($userId === null) {
+            return new Response('', 302, ['Location' => '/login']);
+        }
+
+        if (!$this->permissions()->has($userId, $permission)) {
+            return new Response('Forbidden', 403);
+        }
+
+        return null;
+    }
 }

@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Assessments;
 
-use App\Core\Auth\Csrf;
 use App\Core\Controller;
 use App\Core\Response;
+use App\Core\Auth\ScopeService;
 use App\Core\Validation\Validator;
 use App\Core\Workflow\WorkflowEngine;
 
@@ -13,26 +13,50 @@ class AssessmentController extends Controller
 {
     public function index(): Response
     {
-        $assessments = $this->db()->all(
-            'SELECT a.*, o.name AS organization_name, fy.label AS fiscal_year_label
-             FROM assessments a
-             LEFT JOIN organizations o ON o.id = a.organization_id
-             LEFT JOIN fiscal_years fy ON fy.id = a.fiscal_year_id
-             ORDER BY a.id DESC'
-        );
+        $userId = (int) $this->auth()->id();
+        $scope = $this->container->get(ScopeService::class);
+        $params = [];
+        $sql = 'SELECT a.*, o.name AS organization_name, fy.label AS fiscal_year_label
+                FROM assessments a
+                LEFT JOIN organizations o ON o.id = a.organization_id
+                LEFT JOIN fiscal_years fy ON fy.id = a.fiscal_year_id';
+        if (!$scope->isSuperAdmin($userId)) {
+            $organizationIds = $scope->organizationIdsForUser($userId);
+            if ($organizationIds === []) {
+                $assessments = [];
+                return $this->render('assessments.index', compact('assessments'));
+            }
+            $placeholders = implode(',', array_fill(0, count($organizationIds), '?'));
+            $sql .= " WHERE a.organization_id IN ({$placeholders})";
+            $params = $organizationIds;
+        }
+        $sql .= ' ORDER BY a.id DESC';
+        $assessments = $this->db()->statement($sql, $params)->fetchAll();
         return $this->render('assessments.index', compact('assessments'));
     }
 
     public function create(): Response
     {
-        $organizations = $this->db()->all('SELECT * FROM organizations WHERE is_active = 1 ORDER BY name');
+        $scope = $this->container->get(ScopeService::class);
+        $userId = (int) $this->auth()->id();
+        if ($scope->isSuperAdmin($userId)) {
+            $organizations = $this->db()->all('SELECT * FROM organizations WHERE is_active = 1 ORDER BY name');
+        } else {
+            $organizationIds = $scope->organizationIdsForUser($userId);
+            if ($organizationIds === []) {
+                $organizations = [];
+            } else {
+                $placeholders = implode(',', array_fill(0, count($organizationIds), '?'));
+                $organizations = $this->db()->statement("SELECT * FROM organizations WHERE is_active = 1 AND id IN ({$placeholders}) ORDER BY name", $organizationIds)->fetchAll();
+            }
+        }
         $fiscalYears = $this->db()->all('SELECT * FROM fiscal_years WHERE is_active = 1 ORDER BY label');
-        return $this->render('assessments.create', compact('organizations', 'fiscalYears'));
+        $assessmentPeriods = $this->db()->all('SELECT * FROM assessment_periods WHERE is_active = 1 ORDER BY start_date DESC');
+        return $this->render('assessments.create', compact('organizations', 'fiscalYears', 'assessmentPeriods'));
     }
 
     public function store(): Response
     {
-        Csrf::validate($this->request->input('_csrf'));
         $data = [
             'title' => trim((string) $this->request->input('title')),
             'organization_id' => (int) $this->request->input('organization_id'),
@@ -40,6 +64,10 @@ class AssessmentController extends Controller
             'assessment_period' => trim((string) $this->request->input('assessment_period')),
             'assumptions_notes' => trim((string) $this->request->input('assumptions_notes')),
         ];
+        $scope = $this->container->get(ScopeService::class);
+        if (!$scope->isSuperAdmin((int) $this->auth()->id()) && !in_array($data['organization_id'], $scope->organizationIdsForUser((int) $this->auth()->id()), true)) {
+            return new Response('Forbidden', 403);
+        }
 
         $validator = new Validator($data, [
             'title' => ['required'],
@@ -51,7 +79,8 @@ class AssessmentController extends Controller
         if (!$validator->passes()) {
             $organizations = $this->db()->all('SELECT * FROM organizations WHERE is_active = 1 ORDER BY name');
             $fiscalYears = $this->db()->all('SELECT * FROM fiscal_years WHERE is_active = 1 ORDER BY label');
-            return new Response(view('assessments.create', compact('organizations', 'fiscalYears') + ['errors' => $validator->errors]), 422);
+            $assessmentPeriods = $this->db()->all('SELECT * FROM assessment_periods WHERE is_active = 1 ORDER BY start_date DESC');
+            return new Response(view('assessments.create', compact('organizations', 'fiscalYears', 'assessmentPeriods') + ['errors' => $validator->errors]), 422);
         }
 
         $id = $this->db()->insert('assessments', [
@@ -113,7 +142,6 @@ class AssessmentController extends Controller
 
     private function transition(string $to, string $action): Response
     {
-        Csrf::validate($this->request->input('_csrf'));
         $id = (int) $this->params['id'];
         $assessment = $this->db()->one('SELECT * FROM assessments WHERE id = :id', ['id' => $id]);
         $engine = new WorkflowEngine();
