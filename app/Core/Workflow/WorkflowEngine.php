@@ -10,4 +10,14 @@ class WorkflowEngine
         $transitions = config('workflow.transitions', []);
         return in_array($to, $transitions[$from] ?? [], true);
     }
+
+    public function editableStatuses(): array
+    {
+        return ['draft', 'returned'];
+    }
+
+    public function canEdit(string $status): bool
+    {
+        return in_array($status, $this->editableStatuses(), true);
+    }
 }

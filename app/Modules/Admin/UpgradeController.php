@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Admin;
 
-use App\Core\Auth\Csrf;
 use App\Core\Controller;
 use App\Core\Response;
 use App\Core\Upgrade\UpgradeManager;
@@ -18,7 +17,6 @@ class UpgradeController extends Controller
 
     public function run(): Response
     {
-        Csrf::validate($this->request->input('_csrf'));
         if (!isset($this->request->files['upgrade_zip']) || $this->request->files['upgrade_zip']['error'] !== UPLOAD_ERR_OK) {
             return new Response(view('admin.upgrades', ['error' => 'Please upload a valid package.', 'logs' => []]), 422);
         }

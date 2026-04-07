@@ -11,6 +11,13 @@
             <option value="<?= e((string) $org['id']) ?>"><?= e($org['name']) ?></option>
         <?php endforeach; ?>
     </select>
+    <label>Facility / Hub / Central Unit (optional)</label>
+    <select name="facility_id">
+        <option value="">-- None --</option>
+        <?php foreach ($facilities as $facility): ?>
+            <option value="<?= e((string) $facility['id']) ?>"><?= e($facility['name']) ?> (<?= e($facility['facility_type']) ?>)</option>
+        <?php endforeach; ?>
+    </select>
     <label>Fiscal year</label>
     <select name="fiscal_year_id" required>
         <?php foreach ($fiscalYears as $fy): ?>
@@ -18,7 +25,17 @@
         <?php endforeach; ?>
     </select>
     <label>Assessment period</label>
-    <input type="text" name="assessment_period" placeholder="Q1 FY2026" required>
+    <?php if (!empty($assessmentPeriods)): ?>
+        <select name="assessment_period" required>
+            <?php foreach ($assessmentPeriods as $period): ?>
+                <option value="<?= e($period['label']) ?>"><?= e($period['label']) ?> (<?= e($period['start_date']) ?> to <?= e($period['end_date']) ?>)</option>
+            <?php endforeach; ?>
+        </select>
+    <?php else: ?>
+        <input type="text" name="assessment_period" placeholder="Q1 FY2026" required>
+    <?php endif; ?>
+    <label>Assessment metadata</label>
+    <input type="text" name="metadata" placeholder="e.g., source workbook, region, submission batch">
     <label>Assumptions and notes</label>
     <textarea name="assumptions_notes"></textarea>
     <button class="btn" type="submit">Create</button>

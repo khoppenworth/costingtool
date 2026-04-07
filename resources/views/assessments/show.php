@@ -4,6 +4,7 @@
     <div class="card">
         <strong>Status:</strong> <?= e($assessment['status'] ?? '') ?><br>
         <strong>Organization:</strong> <?= e($assessment['organization_name'] ?? '') ?><br>
+        <strong>Facility:</strong> <?= e($assessment['facility_name'] ?? '') ?><br>
         <strong>Fiscal year:</strong> <?= e($assessment['fiscal_year_label'] ?? '') ?><br>
         <strong>Calculation version:</strong> <?= e($assessment['calculation_version'] ?? '') ?><br>
     </div>
@@ -17,13 +18,27 @@
             <form method="post" action="/assessments/<?= e((string) $assessment['assessment_id']) ?>/submit">
                 <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>"><button class="btn" type="submit">Submit</button>
             </form>
+            <form method="post" action="/assessments/<?= e((string) $assessment['assessment_id']) ?>/review">
+                <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>"><button class="btn" type="submit">Mark Reviewed</button>
+            </form>
+            <form method="post" action="/assessments/<?= e((string) $assessment['assessment_id']) ?>/return">
+                <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+                <input type="text" name="comments" placeholder="Return reason" required>
+                <button class="btn" type="submit">Return</button>
+            </form>
             <form method="post" action="/assessments/<?= e((string) $assessment['assessment_id']) ?>/approve">
                 <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>"><button class="btn" type="submit">Approve</button>
             </form>
             <form method="post" action="/assessments/<?= e((string) $assessment['assessment_id']) ?>/lock">
                 <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>"><button class="btn" type="submit">Lock</button>
             </form>
+            <form method="post" action="/assessments/<?= e((string) $assessment['assessment_id']) ?>/unlock">
+                <input type="hidden" name="_csrf" value="<?= e(csrf_token()) ?>">
+                <input type="text" name="reason" placeholder="Mandatory reopen reason">
+                <button class="btn btn-secondary" type="submit">Unlock/Reopen</button>
+            </form>
         </div>
+        <p><a class="btn btn-secondary" href="/assessments/<?= e((string) $assessment['assessment_id']) ?>/revisions">Revision History</a></p>
     </div>
 </div>
 
@@ -33,6 +48,23 @@
     <tbody>
     <?php foreach ($moduleStatuses as $row): ?>
         <tr><td><?= e($row['module_key']) ?></td><td><?= e($row['status']) ?></td><td><?= e($row['updated_at']) ?></td></tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+
+<h2>Workflow history</h2>
+<table>
+    <thead><tr><th>From</th><th>To</th><th>By User ID</th><th>Comments</th><th>Metadata</th><th>At</th></tr></thead>
+    <tbody>
+    <?php foreach ($workflowHistory as $event): ?>
+        <tr>
+            <td><?= e($event['from_status']) ?></td>
+            <td><?= e($event['to_status']) ?></td>
+            <td><?= e((string) $event['acted_by']) ?></td>
+            <td><?= e((string) ($event['comments'] ?? '')) ?></td>
+            <td><?= e((string) ($event['metadata_json'] ?? '')) ?></td>
+            <td><?= e((string) $event['created_at']) ?></td>
+        </tr>
     <?php endforeach; ?>
     </tbody>
 </table>

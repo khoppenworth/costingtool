@@ -11,6 +11,8 @@
     </div>
     <label>Notes</label>
     <textarea name="notes"><?= e($record['notes'] ?? '') ?></textarea>
+    <label>Change reason (optional)</label>
+    <input name="change_reason" placeholder="Describe why this revision changed">
     <button class="btn" type="submit">Save</button>
     <a class="btn btn-secondary" href="/assessments/<?= e((string) $assessmentId) ?>">Back</a>
 </form>
