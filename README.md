@@ -18,6 +18,7 @@ This repository is a modular baseline implementation of the **TCSA Web Applicati
 - BI-friendly SQL reporting views
 - Admin-only manual upgrade utility with manifest validation and maintenance mode
 - CLI migration, seeding, and admin bootstrap scripts
+- Structured application error logging to `storage/logs/app.log`
 
 ## Important note
 
@@ -89,6 +90,11 @@ Use `--skip-seed` if you only want schema setup:
 ```bash
 php cli/install.php --skip-seed
 ```
+
+The migration and seeding commands are upgrade-safe and idempotent at the orchestration level:
+
+- `php cli/migrate.php` only executes files not yet recorded in `schema_migrations`
+- `php cli/seed.php` can be run repeatedly without duplicating baseline reference records
 
 ### 7. Configure Apache document root
 
@@ -187,6 +193,8 @@ Example manifest:
 }
 ```
 
+During upgrade execution, the app enters maintenance mode and serves HTTP `503` for non-exempt paths until completion.
+
 ## BI-ready reporting views
 
 The project includes:
@@ -217,6 +225,19 @@ This baseline includes:
 - CSRF checks on forms
 - centralized permission checks
 - audit logging
+- centralized CSRF middleware on all POST routes
+- session ID regeneration on login/logout
+
+## Maintenance and operations
+
+- Maintenance mode flag file: `storage/cache/maintenance.flag` (configurable with `APP_MAINTENANCE_FILE`)
+- Exempt route(s) while maintenance mode is active: `/admin/upgrades`
+- App error log: `storage/logs/app.log`
+- Core smoke test script:
+
+```bash
+php cli/smoke-core.php
+```
 
 Before production use, add:
 

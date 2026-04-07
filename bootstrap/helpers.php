@@ -24,16 +24,41 @@ if (!function_exists('env')) {
             $envFile = base_path('.env');
             if (file_exists($envFile)) {
                 foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-                    if (str_starts_with(trim($line), '#') || !str_contains($line, '=')) {
+                    $line = trim($line);
+                    if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
                         continue;
                     }
                     [$k, $v] = explode('=', $line, 2);
-                    $_ENV[trim($k)] = trim($v);
+                    $k = trim($k);
+                    $v = trim($v);
+
+                    if ((str_starts_with($v, '"') && str_ends_with($v, '"')) || (str_starts_with($v, "'") && str_ends_with($v, "'"))) {
+                        $v = substr($v, 1, -1);
+                    } elseif (str_contains($v, ' #')) {
+                        $v = (string) preg_replace('/\s+#.*/', '', $v);
+                    }
+
+                    if (!array_key_exists($k, $_ENV) && getenv($k) === false) {
+                        $_ENV[$k] = $v;
+                    }
                 }
             }
             $loaded = true;
         }
-        return $_ENV[$key] ?? $default;
+        $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+
+        if ($value === false || $value === null) {
+            return $default;
+        }
+
+        $normalized = strtolower((string) $value);
+        return match ($normalized) {
+            'true', '(true)' => true,
+            'false', '(false)' => false,
+            'null', '(null)' => null,
+            'empty', '(empty)' => '',
+            default => $value,
+        };
     }
 }
 
