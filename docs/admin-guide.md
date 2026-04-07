@@ -54,6 +54,16 @@ This guide covers manual checks for the administrative foundation:
 8. **Audit checks**
    - Query `audit_logs` and verify records for user/org/facility/period/settings updates and password resets.
 
+9. **Workflow behavior checks**
+   - Create an assessment in `Draft`.
+   - Progress through `Submitted -> Reviewed -> Approved -> Locked`.
+   - Verify direct module edits fail while in `Submitted/Reviewed/Approved/Locked`.
+   - Use unlock/reopen with a mandatory reason and verify:
+     - status changes to `Returned`
+     - `assessment_revisions` records a new revision
+     - `workflow_history` includes unlock metadata
+   - Open `/assessments/{id}/revisions` and compare revisions via the compare link.
+
 ## Notes
 
 - Scope enforcement uses `user_organization_scopes` for non-super-admin roles.

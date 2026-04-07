@@ -260,6 +260,33 @@ Primary screens:
 
 See `docs/admin-guide.md` for manual verification steps and role/scope behavior checks.
 
+## Assessment workflow baseline quality
+
+Workflow states:
+
+- Draft
+- Submitted
+- Reviewed
+- Returned for Correction (`returned`)
+- Approved
+- Locked
+
+Key behaviors:
+
+- Only valid transitions are allowed via `config/workflow.php`.
+- Module statuses use: `Not Started`, `In Progress`, `Complete`, `Complete with Warnings`, `Validation Errors`.
+- Locked assessments are read-only.
+- Edit operations are restricted to editable workflow states (currently `draft` and `returned`).
+- Admin/reviewer unlock-reopen requires a mandatory reason and creates a new revision.
+- Workflow actions are captured in `workflow_history` (with metadata JSON).
+- Human-readable revision comparison is available at `/assessments/{id}/revisions/compare`.
+
+Smoke test:
+
+```bash
+php cli/smoke-workflow.php
+```
+
 Before production use, add:
 
 - secure cookies and HTTPS-only cookies

@@ -13,6 +13,7 @@ use App\Core\Audit\ChangeTracker;
 use App\Core\Upgrade\ManifestValidator;
 use App\Core\Upgrade\UpgradeManager;
 use App\Core\Support\ErrorHandler;
+use App\Core\Workflow\RevisionComparisonService;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 require_once dirname(__DIR__) . '/bootstrap/helpers.php';
@@ -29,6 +30,7 @@ $container->singleton(PermissionService::class, fn (Container $c) => new Permiss
 $container->singleton(ScopeService::class, fn (Container $c) => new ScopeService($c->get(DB::class)));
 $container->singleton(AuditLogger::class, fn (Container $c) => new AuditLogger($c->get(DB::class)));
 $container->singleton(ChangeTracker::class, fn (Container $c) => new ChangeTracker($c->get(DB::class)));
+$container->singleton(RevisionComparisonService::class, fn (Container $c) => new RevisionComparisonService($c->get(DB::class)));
 $container->singleton(ManifestValidator::class, fn () => new ManifestValidator());
 $container->singleton(UpgradeManager::class, fn (Container $c) => new UpgradeManager($c->get(DB::class), $c->get(ManifestValidator::class)));
 

@@ -6,12 +6,15 @@ namespace App\Modules\ExchangeInflation;
 use App\Core\Controller;
 use App\Core\Response;
 use App\Core\Validation\Validator;
+use App\Core\Workflow\WorkflowEngine;
+use App\Core\Audit\ChangeTracker;
 
 class ExchangeInflationController extends Controller
 {
     public function edit(): Response
     {
         $assessmentId = (int) $this->params['id'];
+        $this->db()->update('module_statuses', ['status' => 'In Progress', 'updated_at' => date('Y-m-d H:i:s')], 'assessment_id = :id AND module_key = :module_key AND status = :status', ['id' => $assessmentId, 'module_key' => 'exchange_inflation', 'status' => 'Not Started']);
         $rows = $this->db()->all('SELECT * FROM exchange_inflation_rates WHERE assessment_id = :id ORDER BY year', ['id' => $assessmentId]);
         return $this->render('exchange_inflation.edit', compact('assessmentId', 'rows'));
     }
@@ -19,6 +22,12 @@ class ExchangeInflationController extends Controller
     public function update(): Response
     {
         $assessmentId = (int) $this->params['id'];
+        $assessment = $this->db()->one('SELECT status, current_revision FROM assessments WHERE id = :id', ['id' => $assessmentId]);
+        $engine = new WorkflowEngine();
+        if (!$assessment || !$engine->canEdit($assessment['status'])) {
+            return new Response('Assessment is read-only in its current workflow state.', 422);
+        }
+
         $years = $this->request->post['year'] ?? [];
         $etbUsd = $this->request->post['etb_per_usd'] ?? [];
         $interest = $this->request->post['interest_rate'] ?? [];
@@ -43,6 +52,7 @@ class ExchangeInflationController extends Controller
             ]);
 
             if (!$validator->passes()) {
+                $this->db()->update('module_statuses', ['status' => 'Validation Errors', 'updated_at' => date('Y-m-d H:i:s')], 'assessment_id = :id AND module_key = :module_key', ['id' => $assessmentId, 'module_key' => 'exchange_inflation']);
                 return new Response(view('exchange_inflation.edit', ['assessmentId' => $assessmentId, 'rows' => [], 'errors' => $validator->errors]), 422);
             }
 
@@ -57,7 +67,8 @@ class ExchangeInflationController extends Controller
             ]);
         }
 
-        $this->db()->update('module_statuses', ['status' => 'complete', 'updated_at' => date('Y-m-d H:i:s')], 'assessment_id = :id AND module_key = :module_key', ['id' => $assessmentId, 'module_key' => 'exchange_inflation']);
+        $this->db()->update('module_statuses', ['status' => 'Complete', 'updated_at' => date('Y-m-d H:i:s')], 'assessment_id = :id AND module_key = :module_key', ['id' => $assessmentId, 'module_key' => 'exchange_inflation']);
+        $this->container->get(ChangeTracker::class)->track($assessmentId, 'exchange_inflation', 'bulk_update', '', json_encode($this->request->post), $this->auth()->id(), (int) ($assessment['current_revision'] ?? 1), trim((string) $this->request->input('change_reason')));
         $this->audit()->log($this->auth()->id(), 'update', 'exchange_inflation', $assessmentId);
 
         return redirect('/assessments/' . $assessmentId);
