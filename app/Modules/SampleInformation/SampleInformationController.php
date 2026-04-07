@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Modules\SampleInformation;
 
-use App\Core\Auth\Csrf;
 use App\Core\Controller;
 use App\Core\Response;
 use App\Core\Validation\Validator;
@@ -20,7 +19,6 @@ class SampleInformationController extends Controller
 
     public function update(): Response
     {
-        Csrf::validate($this->request->input('_csrf'));
         $assessmentId = (int) $this->params['id'];
         $data = [
             'sites_surveyed' => $this->request->input('sites_surveyed'),

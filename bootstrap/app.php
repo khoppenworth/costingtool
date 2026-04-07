@@ -11,11 +11,13 @@ use App\Core\Audit\AuditLogger;
 use App\Core\Audit\ChangeTracker;
 use App\Core\Upgrade\ManifestValidator;
 use App\Core\Upgrade\UpgradeManager;
+use App\Core\Support\ErrorHandler;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 require_once dirname(__DIR__) . '/bootstrap/helpers.php';
 
 date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
+ErrorHandler::register();
 
 $container = new Container();
 

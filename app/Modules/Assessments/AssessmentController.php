@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Assessments;
 
-use App\Core\Auth\Csrf;
 use App\Core\Controller;
 use App\Core\Response;
 use App\Core\Validation\Validator;
@@ -32,7 +31,6 @@ class AssessmentController extends Controller
 
     public function store(): Response
     {
-        Csrf::validate($this->request->input('_csrf'));
         $data = [
             'title' => trim((string) $this->request->input('title')),
             'organization_id' => (int) $this->request->input('organization_id'),
@@ -113,7 +111,6 @@ class AssessmentController extends Controller
 
     private function transition(string $to, string $action): Response
     {
-        Csrf::validate($this->request->input('_csrf'));
         $id = (int) $this->params['id'];
         $assessment = $this->db()->one('SELECT * FROM assessments WHERE id = :id', ['id' => $id]);
         $engine = new WorkflowEngine();

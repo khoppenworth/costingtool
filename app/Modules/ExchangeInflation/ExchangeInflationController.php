@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Modules\ExchangeInflation;
 
-use App\Core\Auth\Csrf;
 use App\Core\Controller;
 use App\Core\Response;
 use App\Core\Validation\Validator;
@@ -19,7 +18,6 @@ class ExchangeInflationController extends Controller
 
     public function update(): Response
     {
-        Csrf::validate($this->request->input('_csrf'));
         $assessmentId = (int) $this->params['id'];
         $years = $this->request->post['year'] ?? [];
         $etbUsd = $this->request->post['etb_per_usd'] ?? [];
