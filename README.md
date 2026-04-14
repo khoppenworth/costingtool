@@ -195,6 +195,17 @@ Example manifest:
 
 During upgrade execution, the app enters maintenance mode and serves HTTP `503` for non-exempt paths until completion.
 
+The upgrade screen now supports checking GitHub Releases and running the latest release upgrade directly from the UI. Configure these `.env` keys:
+
+- `UPGRADE_GITHUB_OWNER`
+- `UPGRADE_GITHUB_REPO`
+- `UPGRADE_RELEASE_ASSET` (optional, defaults to `upgrade-package.zip`)
+- `UPGRADE_GITHUB_TOKEN` (optional for private repos/rate limits)
+
+Each run creates both a DB backup (`storage/backups/.../db.sql.gz`) and app backup (`storage/backups/.../app.zip`) before deploying files and executing migrations.
+
+For additional rollout guidance, see `docs/upgrade-guide.md`.
+
 ## BI-ready reporting views
 
 The project includes:
