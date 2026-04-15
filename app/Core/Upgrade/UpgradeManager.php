@@ -240,7 +240,7 @@ class UpgradeManager
     private function backupDatabase(string $outputFile): void
     {
         $db = config('database');
-        $command = sprintf(
+        $pipeline = sprintf(
             'MYSQL_PWD=%s mysqldump --single-transaction --quick --routines --triggers -h %s -P %s -u %s %s | gzip > %s',
             escapeshellarg((string) ($db['password'] ?? '')),
             escapeshellarg((string) ($db['host'] ?? '127.0.0.1')),
@@ -250,8 +250,8 @@ class UpgradeManager
             escapeshellarg($outputFile)
         );
 
-        exec($command, $output, $exitCode);
-        if ($exitCode !== 0 || !file_exists($outputFile)) {
+        $this->runPipelineWithPipefail($pipeline, $output, $exitCode);
+        if ($exitCode !== 0 || !file_exists($outputFile) || filesize($outputFile) === 0) {
             throw new RuntimeException('Database backup failed. Ensure mysqldump and gzip are installed for web user.');
         }
     }
@@ -259,7 +259,7 @@ class UpgradeManager
     private function restoreDatabase(string $backupFile): void
     {
         $db = config('database');
-        $command = sprintf(
+        $pipeline = sprintf(
             'gunzip -c %s | MYSQL_PWD=%s mysql -h %s -P %s -u %s %s',
             escapeshellarg($backupFile),
             escapeshellarg((string) ($db['password'] ?? '')),
@@ -269,10 +269,16 @@ class UpgradeManager
             escapeshellarg((string) ($db['database'] ?? ''))
         );
 
-        exec($command, $output, $exitCode);
+        $this->runPipelineWithPipefail($pipeline, $output, $exitCode);
         if ($exitCode !== 0) {
             throw new RuntimeException('Database restore failed.');
         }
+    }
+
+    private function runPipelineWithPipefail(string $pipeline, array &$output, int &$exitCode): void
+    {
+        $command = '/bin/bash -o pipefail -c ' . escapeshellarg($pipeline) . ' 2>&1';
+        exec($command, $output, $exitCode);
     }
 
     private function backupApplication(string $zipFile): void
